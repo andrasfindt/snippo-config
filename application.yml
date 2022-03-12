@@ -1,0 +1,77 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - mappings
+          - refresh
+          - metrics
+          - prometheus
+          - threaddump
+          - heapdump
+  endpoint:
+    health:
+      show-details: always
+  health:
+    jms.enabled: false
+    ping.enabled: false
+    diskspace.enabled: false
+server:
+  error.whitelabel.enabled: false
+health:
+  config.enabled: false
+spring:
+  autoconfigure.exclude: org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration
+  jmx:
+    enabled: true
+  sleuth:
+    propagation-keys: authorization
+    baggage:
+      remote-fields: authorization
+  application:
+
+  cloud:
+    discovery.client.composite-indicator.enabled: false
+    # If this is enabled circuitbreaker metrics get registered multiple times.
+    circuitbreaker:
+      resilience4j:
+        enabled: false
+  jpa:
+    open-in-view: false
+logging:
+  blacklist:
+    local-url-patterns: "**/webjars/**"
+  level:
+    ROOT: INFO
+    org.springframework: WARN
+    org.springframework.web: WARN
+    com.sbg.domain.platform: INFO
+    com.sbg.domain.logging: WARN
+# See the resilience4j spring-boot 2 guide for details on possible configuration properties
+# https://resilience4j.readme.io/docs/getting-started-3#configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowType: TIME_BASED
+        # For time based windows the window size is the number of seconds.
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 20
+        failureRateThreshold: 50
+        permittedNumberOfCallsInHalfOpenState: 10
+        waitDurationInOpenState: 5s
+        slowCallDurationThreshold: 6s
+        slowCallRateThreshold: 90.0
+    instances:
+      publishMessage:
+        slowCallDurationThreshold: 90ms
+        baseConfig: default
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 7s
+    instances:
+      publishMessage:
+        timeoutDuration: 100ms
